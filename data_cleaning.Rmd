@@ -1,0 +1,191 @@
+---
+title: "Data Cleaning"
+author: "Uluc Kadioglu"
+date: "11/2/2020"
+output: html_document
+---
+
+https://wyatthurt.shinyapps.io/water_conflict/
+https://shiny.rstudio.com/reference/shiny/1.5.0/
+
+From Wyatt Hurt to Everyone: (8:19 PM)
+
+library(state)
+https://www.rdocumentation.org/packages/datasets/versions/3.6.2/topics/state
+state.x77
+https://usmap.dev/
+data(statepop)
+
+From Wyatt Hurt to Everyone: (8:25 PM)
+
+https://davidkane9.github.io/PPBDS/maps.html
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(bigrquery)
+library(tidytext)
+library(ggrepel)
+library(wordcloud2)
+library(datapasta)
+library(webshot)
+library(htmlwidgets)
+library(mapview)
+library(ggmap)
+library(sf)
+library(rstanarm)
+library(lubridate)
+library(tigris)
+library(wordcloud2)
+library(usmap)
+library(gtsummary)
+library(gt)
+library(broom.mixed)
+
+```
+
+```{r}
+ufo <- read_rds("shiny_app/data/nuforc_reports.rds") %>%
+            filter(state %in% state.abb) %>%
+            drop_na()
+
+View(ufo)
+```
+
+```{r}
+
+ufo_text_only <- read_rds("shiny_app/data/nuforc_reports.rds") %>%
+  select(text) %>%
+  drop_na()
+
+rgb2hex <- function(r,g,b) rgb(r, g, b, maxColorValue = 255)
+
+colour_scheme <- c(rgb2hex(0,144,218),
+                  rgb2hex(219,10,91),
+                  rgb2hex(0,163,173),
+                  rgb2hex(0,97,160),
+                  rgb2hex(96,37,169))
+
+stopwords2 <- tibble(word = c("I",
+                              "there",
+                              "were",
+                              "it",
+                              "3",
+                              "30",
+                              "20",
+                              "5",
+                              "100",
+                              "2",
+                              "15",
+                              "pd",
+                              "note",
+                              "10",
+                              "nuforc",
+                              "1",
+                              "4",
+                              "8",
+                              "7",
+                              "6",
+                              "9",
+                              "12",
+                              "50"))
+
+copied_text <- datapasta::vector_construct()
+
+copied_text %>%
+  enframe(name = "line", value = "text") %>% # Convert text into a tibble
+  tidytext::unnest_tokens(output = word, # tokenise - one word per row
+                          input = text,
+                          token = "words") %>%
+  mutate_at("word", ~str_replace_all(.,"clouds","cloud")) %>% # Manual word stemming
+  anti_join(tidytext::stop_words, by = "word") %>% # Remove stop words using tidytext
+  anti_join(stopwords2, by = "word") %>% # Remove additional stop words
+  count(word, name = "freq") %>%
+  filter(freq >= 50) %>%
+  wordcloud2::wordcloud2(size = 1,
+                         ellipticity = 1,
+                         rotateRatio = 0,
+                         color = sample(colour_scheme, nrow(.), replace = TRUE))
+
+```
+
+```{r map}
+# https://cran.r-project.org/web/packages/usmap/usmap.pdf
+
+meteor_locations <- read_csv("shiny_app/data/meteorite-landings.csv") %>%
+  arrange(desc(year)) %>%
+  select(name, year, reclat, reclong, GeoLocation) %>%
+  filter(!GeoLocation == "(0.000000, 0.000000)") %>%
+  select(reclat, reclong) %>%
+  filter(reclong >= -125 & reclong <= -66 & reclat <= 49 & reclat >= 25)
+
+ufo_locations <- ufo %>%
+  select(city_latitude, city_longitude) %>%
+  head(10) %>%
+  filter(city_longitude >= -125 & city_longitude <= -66 & city_latitude <= 49 & city_latitude >= 25)
+
+ufo_locations_sf <- st_as_sf(ufo_locations, coords = c("city_longitude", "city_latitude"), crs = 4326)
+meteor_locations_sf <- st_as_sf(meteor_locations, coords = c("reclong", "reclat"), crs = 4326)
+
+mapview(ufo_locations_sf)
+
+# Maybe a map that has both meteor landings and UFO sightings together.
+```
+
+```{r alcohol}
+
+alcohol <- read.csv("shiny_app/data/excessive_alcohol.csv") %>%
+  rename(state = State)
+
+ufo_alcohol <- ufo %>%
+  select(state) %>%
+  count(state)
+
+variables <- state.x77 %>%
+  as_tibble() %>%
+  clean_names() %>%
+  select(population, income, illiteracy) %>%
+  rename(Population = population) %>%
+  rename(Income = income) %>%
+  rename(Illiteracy = illiteracy)
+
+alcohol_joined <- inner_join(alcohol, ufo_alcohol) %>%
+  mutate(variables) %>%
+  rename(Prevalence = Percentage)
+
+model <- stan_glm(data = alcohol_joined,
+                n ~ Population + Income + Illiteracy + Prevalence, # Add pluses here to control for more variables.
+                family = gaussian(),
+                refresh = 0)
+
+table <- tbl_regression(model) %>%
+  as_gt() %>%
+  tab_header(title = "Regression of Number of UFOs Sighted in Each State",
+             subtitle = "The Effect of Population, Income, Illiteracy and Prevalence of Binge Drinking")
+
+table
+```
+
+Choice in Shiny
+
+tabPanel(
+                   "Visualizations",
+                   sidebarLayout(
+                     sidebarPanel("Test",
+                                  p("Test")),
+                     selectInput(inputId = "selected_state",                  
+                                 label = "Choose a state from this list!",    
+                                 choices = state.names)),
+                     mainPanel(
+                   plotOutput("shape_plot"),
+                   textOutput("state_message"))),
+                   
+                   
+```{r}
+
+read_rds("shiny_app/raw_data/nuforc_reports.rds")
+```
+                   
+                   

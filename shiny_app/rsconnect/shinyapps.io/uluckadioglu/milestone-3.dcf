@@ -1,0 +1,12 @@
+name: milestone-3
+title: milestone-3
+username:
+account: uluckadioglu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2903509
+bundleId: 3679780
+url: https://uluckadioglu.shinyapps.io/milestone-3/
+when: 1601312156.41554
+asMultiple: FALSE
+asStatic: FALSE

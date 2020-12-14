@@ -23,28 +23,30 @@ library(broom.mixed)
 
 # Define UI for application that draws a histogram
 
-state.names <- c("CA", "NY", "KS")
+state.names <- c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", 
+                 "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA",
+                 "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", 
+                 "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", 
+                 "SC", "SD", "TN")
+
+# Defined state names above; apparently Shiny can only take a certain number of if and else statements, so I could only go as far as TN.
 
 shinyUI(
     navbarPage(theme = shinytheme("united"),
                "UFO Sightings in the U.S.",
-               tabPanel(
-                   "About",
-                   h2("UFO Sightings in the United States"),
-                   p("GitHub Repo for the Final Project:", a("Link",
-                      href = "https://github.com/UlucKadioglu/final_project"),
-                   p("For this project, I decided to focus on UFO Sightings in the United States and aim to see 
-                   whether certain characteristics of each state affect the number of UFOs sighted in those states. 
-                   The Model tab offers a data table that shows the relationship between these characteristics and their likely effects on UFO sightings.
-                     The data I used come from three main sources. The main dataset that details each recorded UFO sighting is from 
-                      the National UFO Reporting Center. The dataset on meteorite landings is from NASA, and the final, smaller dataset
-                     on the prevalence of binge drinking in each state is from the CDC."))), 
                
                tabPanel(
-                   "Visualizations",
-                     mainPanel(
-                   plotOutput("shape_plot"),
-                   textOutput("state_message"))),
+                 "Visualizations",
+                 h2("Shapes of UFOs Sighted in Different States"),
+                 p("Curious about what types of UFOs are sighted in different states? Pick a state and view a plot that shows the number of UFOs of different shapes
+                   sighted in your home state!"),
+                 mainPanel(
+                   selectInput(inputId = "selected_state",                  
+                               label = "Choose a state from this list!",    
+                               choices = state.names)),
+                   plotOutput("shape_plot")),
+               
+               # Have one plotOutput, and define the different states in server.
                
                tabPanel(
                  "Model",
@@ -65,6 +67,8 @@ shinyUI(
                  mainPanel(
                    img(src = "table.png", height = 300, width = 550))),
                
+               # I couldn't integrate the tbl_regression table, so added it as an image.
+               
                tabPanel(
                  "Word Cloud",
                  h2("Word Cloud of the Descriptions of Each UFO Sighting"),
@@ -73,6 +77,22 @@ shinyUI(
                    they saw the UFO, as well as what it looked like. The Word Cloud below visualizes the words that appear more than 50 times
                    in the recorded descriptions."),
                  mainPanel(
-                   img(src = "wc2.png", height = 375, width = 550)))
+                   img(src = "wc2.png", height = 375, width = 550))),
+               
+               tabPanel(
+                 "About",
+                 h2("UFO Sightings in the United States"),
+                 p("GitHub Repo for the Final Project:", a("Link",
+                                                           href = "https://github.com/UlucKadioglu/us_ufo_sightings"),
+                   p("For this project, I decided to focus on UFO Sightings in the United States and aim to see 
+                   whether certain characteristics of each state affect the number of UFOs sighted in those states.
+                   The Visualizations tab offers the option to pick a state and view the number of times UFOs of different shapes were seen in that state.
+                   The Model tab offers a data table that shows the relationship between these characteristics and their likely effects on UFO sightings.
+                   The Word Cloud tab simply presents a word cloud of the descriptions of each UFO sighting in the entire dataset.
+                     The data I used come from two main sources. The main dataset that details each recorded UFO sighting is from 
+                      the National UFO Reporting Center, and the smaller dataset
+                     on the prevalence of binge drinking in each state is from the CDC.")))
+               
+               # Spent quite some time here but couldn't integrate the word coud through its original package, so just added an image of it instead.
                
     ))

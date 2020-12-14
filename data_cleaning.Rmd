@@ -167,25 +167,68 @@ table <- tbl_regression(model) %>%
 
 table
 ```
-
-Choice in Shiny
-
-tabPanel(
-                   "Visualizations",
-                   sidebarLayout(
-                     sidebarPanel("Test",
-                                  p("Test")),
-                     selectInput(inputId = "selected_state",                  
-                                 label = "Choose a state from this list!",    
-                                 choices = state.names)),
-                     mainPanel(
-                   plotOutput("shape_plot"),
-                   textOutput("state_message"))),
-                   
                    
 ```{r}
 
 read_rds("shiny_app/raw_data/nuforc_reports.rds")
 ```
                    
-                   
+```{r visualizations}
+
+ufo %>%
+            select(state, shape) %>%
+            drop_na() %>%
+            filter(shape == "changing" | shape == "chevron" | shape == "cigar" |
+                   shape == "circle" | shape == "circle" | shape == "cone" | shape == "cross" |
+                   shape == "cylinder" | shape == "diamond" | shape == "disk" |
+                   shape == "egg" | shape == "fireball" | shape == "flash" | shape == "formation" |
+                   shape == "light" | shape == "other" | shape == "oval" | shape == "rectangle" |
+                   shape == "sphere" | shape == "teardrop" | shape == "triangle" | shape == "unknown") %>%
+            filter(state == "AL" | state == "AK" | state == "AZ" |
+                   state == "AR" | state == "CA" | state == "CO" |
+                   state == "CT" | state == "DE" | state == "FL" |
+                   state == "GA" | state == "HI" | state == "ID" |
+                   state == "IL" | state == "IN" | state == "IA" |
+                   state == "KS" | state == "KY" | state == "LA" |
+                   state == "ME" | state == "MD" | state == "MA" |
+                   state == "MI" | state == "MN" | state == "MS" |
+                   state == "MO" | state == "MT" | state == "NE" |
+                   state == "NV" | state == "NH" | state == "NJ" |
+                   state == "NM" | state == "NY" | state == "NC" |
+                   state == "ND" | state == "OH" | state == "OK" |
+                   state == "OR" | state == "PA" | state == "RI" |
+                   state == "SC" | state == "SD" | state == "TN" |
+                   state == "TX" | state == "UT" | state == "VT" |
+                   state == "VA" | state == "WA" | state == "WV" |
+                   state == "WI" | state == "WY") %>%
+            drop_na() %>%
+            ggplot(aes(x = state, fill = shape)) +
+            geom_histogram(stat = "count") +
+            theme_bw() +
+            theme(axis.text.x = element_text(angle = 90)) +
+            labs(title = "Number of UFO Sightings by State", subtitle = "Don't forget to take the population of each state into account!", 
+                 x = "States", y = "Count")
+
+
+```
+
+```{r}
+
+ufo %>%
+  select(state, shape) %>%
+  drop_na() %>%
+  filter(shape == "changing" | shape == "chevron" | shape == "cigar" |
+                   shape == "circle" | shape == "circle" | shape == "cone" | shape == "cross" |
+                   shape == "cylinder" | shape == "diamond" | shape == "disk" |
+                   shape == "egg" | shape == "fireball" | shape == "flash" | shape == "formation" |
+                   shape == "light" | shape == "other" | shape == "oval" | shape == "rectangle" |
+                   shape == "sphere" | shape == "teardrop" | shape == "triangle" | shape == "unknown") %>%
+  filter(state == "AK") %>%
+  ggplot(aes(x = shape, fill = shape)) +
+  geom_histogram(stat = "count") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Shapes of UFOs Sighted in States", x = "Shape", y = "Count")
+  
+```
+

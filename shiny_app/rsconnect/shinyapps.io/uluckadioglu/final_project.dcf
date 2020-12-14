@@ -5,8 +5,8 @@ account: uluckadioglu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3025669
-bundleId: 3952066
+bundleId: 3956792
 url: https://uluckadioglu.shinyapps.io/final_project/
-when: 1607294010.07763
+when: 1607372864.51726
 asMultiple: FALSE
 asStatic: FALSE
